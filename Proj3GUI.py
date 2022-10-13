@@ -148,12 +148,12 @@ class PointLineView( QWidget ):
 				pt = QPointF(scale*point.x(), scale*point.y())
 				painter.drawEllipse( pt, 1.0, 1.0)
 		if self.start_pt:
-			painter.setPen( QPen(QColor(0.0,255.0,0.0), 2.0) )
+			painter.setPen( QPen(QColor(0,255,0), 2.0) )
 			pt = QPointF( scale*self.start_pt.x() -0.0, \
 						  scale*self.start_pt.y() -0.0 )
 			painter.drawEllipse( pt, 4.0, 4.0)
 		if self.end_pt:
-			painter.setPen( QPen(QColor(255.0,0.0,0.0), 2.0) )
+			painter.setPen( QPen(QColor(255,0,0), 2.0) )
 			pt = QPointF( scale*self.end_pt.x() -0.0, \
 						  scale*self.end_pt.y() -0.0 )
 			painter.drawEllipse( pt, 4.0, 4.0)
