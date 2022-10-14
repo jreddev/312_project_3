@@ -8,6 +8,7 @@ import time
 class NetworkRoutingSolver:
     def __init__(self):
         self.array = []
+        self.prev_saved = []
         self.heap = None
         pass
 
@@ -23,14 +24,30 @@ class NetworkRoutingSolver:
         #       NEED TO USE
         path_edges = []
         total_length = 0
-        node = self.network.nodes[self.source]
-        edges_left = 3
-        while edges_left > 0:
-            edge = node.neighbors[2]
-            path_edges.append( (edge.src.loc, edge.dest.loc, '{:.0f}'.format(edge.length)) )
-            total_length += edge.length
-            node = edge.dest
-            edges_left -= 1
+        n = self.dest
+        print("source: ", self.source)
+        print("destination: ", self.dest)
+        while n != self.source:
+            node = self.network.nodes[n]
+            prev_node = self.network.nodes[self.prev_saved[n]]
+            found = 0
+            for edge in node.neighbors:
+                if edge.src.node_id == prev_node.node_id:
+                    path_edges.append(edge)
+                    found = 1
+                    total_length += edge.length
+            if found == 0:
+                print("error! prev_edge not found!")
+            n = prev_node.node_id
+
+        #node = self.network.nodes[self.source]
+        #edges_left = 3
+        #while edges_left > 0:
+            #edge = node.neighbors[2]
+            #path_edges.append( (edge.src.loc, edge.dest.loc, '{:.0f}'.format(edge.length)) )
+            #total_length += edge.length
+            #node = edge.dest
+            #edges_left -= 1
         return {'cost':total_length, 'path':path_edges}
 
     def computeShortestPaths( self, srcIndex, use_heap=False ):
@@ -65,7 +82,9 @@ class NetworkRoutingSolver:
 
         edges_deleted = 0
         while edges_deleted != len(self.network.nodes):
-            u = Queue.deleteMin(self.array)
+            u = Queue.deleteMin(self.array, dist)
+            if u == -1:
+                break
             node = self.network.nodes[u]
             edges_deleted += 1
             for e in node.neighbors:
@@ -77,6 +96,8 @@ class NetworkRoutingSolver:
                     Queue.decreaseKey(self.array)
             print("new dist[]: ", dist)
             print("new prev[]:", prev)
+
+        self.prev_saved = prev
 
         t2 = time.time()
         return (t2-t1)
@@ -98,17 +119,19 @@ class NetworkRoutingSolver:
             #print("array insert\n")
             array.insert(index, n)
 
-        def deleteMin(self, array):
+        def deleteMin(self, array, dist):
             print("array deleteMin\n")
-            changed = 1
+            i = 0
             lowest = float('inf')
-            while changed == 1:
-                changed = 0
-                for n in array:
-                    if (n != float('inf')) & (float(n) < lowest) & (n >= 0):
-                        lowest = n
-                        changed = 1
-            array[int(lowest)] = -1
+            for n in dist:
+                if (n != float('inf')) & (float(n) < lowest) & (array[i] >= 0):
+                    lowest = i
+                i += 1
+            if lowest == float('inf'):
+                print("lowest not changed, cannot reach any more nodes\n")
+                print("array at point: ", array)
+                return -1
+            array[lowest] = -1
             return lowest
 
         def decreaseKey(self, array):
