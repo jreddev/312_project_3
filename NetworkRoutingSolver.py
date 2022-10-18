@@ -10,6 +10,7 @@ class NetworkRoutingSolver:
         self.array = []
         self.prev_saved = []
         self.heap = None
+        self.debug = 0
         pass
 
     def initializeNetwork(self, network):
@@ -25,19 +26,21 @@ class NetworkRoutingSolver:
         path_edges = []
         total_length = 0
         n = self.dest
-        print("source: ", self.source)
-        print("destination: ", self.dest)
+        if self.debug == 1:
+            print("source: ", self.source)
+            print("destination: ", self.dest)
         while n != self.source:
             node = self.network.nodes[n]
             prev_node = self.network.nodes[self.prev_saved[n]]
             found = 0
-            for edge in node.neighbors:
-                if edge.src.node_id == prev_node.node_id:
-                    path_edges.append(edge)
+            for edge in prev_node.neighbors:
+                if edge.dest.node_id == node.node_id:
+                    path_edges.append((edge.src.loc, edge.dest.loc, '{:.0f}'.format(edge.length)))
                     found = 1
                     total_length += edge.length
             if found == 0:
-                print("error! prev_edge not found!")
+                if self.debug == 1:
+                    print("error! prev_edge not found!")
             n = prev_node.node_id
 
         #node = self.network.nodes[self.source]
@@ -58,17 +61,16 @@ class NetworkRoutingSolver:
         #       CALL TO getShortestPath(dest_index)
 
         dist = []
+        prev = []
         i = 0
         for n in self.network.nodes:
+            prev.append(None)
             if i == srcIndex:
                 dist.append(0)
             else:
                 dist.append(float('inf'))
             i += 1
         print("dist: ", dist)
-        prev = []
-        for n in self.network.nodes:
-            prev.append(None)
         print("prev: ", prev)
 
         if (use_heap):
@@ -84,18 +86,21 @@ class NetworkRoutingSolver:
         while edges_deleted != len(self.network.nodes):
             u = Queue.deleteMin(self.array, dist)
             if u == -1:
-                break
+                edges_deleted += 1
+                continue
             node = self.network.nodes[u]
             edges_deleted += 1
             for e in node.neighbors:
                 if (dist[e.dest.node_id] > (dist[e.src.node_id] + e.length)):
-                    print("old dist: ", dist[e.dest.node_id])
-                    print("new dist: ", dist[e.src.node_id] + e.length)
+                    if self.debug == 1:
+                        print("old dist: ", dist[e.dest.node_id])
+                        print("new dist: ", dist[e.src.node_id] + e.length)
                     dist[e.dest.node_id] = (dist[e.src.node_id] + e.length)
                     prev[e.dest.node_id] = e.src.node_id
                     Queue.decreaseKey(self.array)
-            print("new dist[]: ", dist)
-            print("new prev[]:", prev)
+            if self.debug == 1:
+                print("new dist[]: ", dist)
+                print("new prev[]:", prev)
 
         self.prev_saved = prev
 
@@ -103,8 +108,12 @@ class NetworkRoutingSolver:
         return (t2-t1)
 
     class ArrayQueue:
+
+        def __init__(self):
+            self.debug = 0
         def makeQueue(self, nodes, array, index):
-            print("array makeQueue\n")
+            if self.debug == 1:
+                print("array makeQueue\n")
             i = 0
             for n in nodes:
                 if i == index:
@@ -113,14 +122,17 @@ class NetworkRoutingSolver:
                     self.insert(float('inf'), len(array), array)
                 i += 1
 
-            print("Array: ", array)
+            if self.debug == 1:
+                print("Array: ", array)
 
         def insert(self, n, index, array):
-            #print("array insert\n")
+            #if self.debug == 1:
+            #   print("array insert\n")
             array.insert(index, n)
 
         def deleteMin(self, array, dist):
-            print("array deleteMin\n")
+            if self.debug == 1:
+                print("array deleteMin\n")
             i = 0
             lowest = float('inf')
             for n in dist:
@@ -128,14 +140,16 @@ class NetworkRoutingSolver:
                     lowest = i
                 i += 1
             if lowest == float('inf'):
-                print("lowest not changed, cannot reach any more nodes\n")
-                print("array at point: ", array)
+                if self.debug == 1:
+                    print("lowest not changed, cannot reach any more nodes\n")
+                    print("array at point: ", array)
                 return -1
             array[lowest] = -1
             return lowest
 
         def decreaseKey(self, array):
-            print("array decreaseKey\n")
+            if self.debug == 1:
+                print("array decreaseKey\n")
             #does nothing
 
 
