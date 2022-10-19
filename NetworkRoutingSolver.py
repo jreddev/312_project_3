@@ -84,19 +84,22 @@ class NetworkRoutingSolver:
 
         edges_deleted = 0
         while edges_deleted != len(self.network.nodes):
-            u = Queue.deleteMin(self.array, dist)
-            if u == -1:
-                edges_deleted += 1
-                continue
-            node = self.network.nodes[u]
+            currentID = Queue.deleteMin(self.array, dist)
             edges_deleted += 1
-            for e in node.neighbors:
-                if (dist[e.dest.node_id] > (dist[e.src.node_id] + e.length)):
+            if currentID == -1:
+                continue
+            node = self.network.nodes[currentID]
+            neighbors = node.neighbors
+            for edge in neighbors:
+                sourceID = edge.src.node_id
+                destID = edge.dest.node_id
+                length = edge.length
+                if (dist[destID] > (dist[sourceID] + length)):
                     if self.debug == 1:
-                        print("old dist: ", dist[e.dest.node_id])
-                        print("new dist: ", dist[e.src.node_id] + e.length)
-                    dist[e.dest.node_id] = (dist[e.src.node_id] + e.length)
-                    prev[e.dest.node_id] = e.src.node_id
+                        print("old dist: ", dist[destID])
+                        print("new dist: ", dist[sourceID] + length)
+                    dist[destID] = (dist[sourceID] + length)
+                    prev[destID] = sourceID
                     Queue.decreaseKey(self.array)
             if self.debug == 1:
                 print("new dist[]: ", dist)
@@ -128,16 +131,20 @@ class NetworkRoutingSolver:
         def insert(self, n, index, array):
             #if self.debug == 1:
             #   print("array insert\n")
-            array.insert(index, n)
+            array.append(n)
 
         def deleteMin(self, array, dist):
             if self.debug == 1:
                 print("array deleteMin\n")
             i = 0
+            length = len(dist)
             lowest = float('inf')
             for n in dist:
-                if (n != float('inf')) & (float(n) < lowest) & (array[i] >= 0):
+                if i == len(dist):
+                    break
+                if n != float('inf') and float(n) < lowest and array[i] >= 0 and i != len(dist):
                     lowest = i
+
                 i += 1
             if lowest == float('inf'):
                 if self.debug == 1:
